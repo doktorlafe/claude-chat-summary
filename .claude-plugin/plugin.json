@@ -1,0 +1,8 @@
+{
+  "name": "chat-summary",
+  "version": "0.1.0",
+  "description": "Shows a few-word summary of what the chat is about above the prompt",
+  "author": { "name": "lafe" },
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}
