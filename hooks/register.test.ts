@@ -73,3 +73,60 @@ test('a subagent turn asks the model nothing', async ($, on) => {
 
   expect(calls).toBe(0)
 })
+
+test('/summary answers with a longer summary of the whole chat', async ($, on) => {
+  let asked = ''
+  on('model.fork', (_, e) => {
+    asked = e.prompt
+
+    return {
+      value: {
+        isAnswered: true,
+        text: 'Chat o VPS.\n- hotová dokumentace\n',
+        usage: { input_tokens: 1, output_tokens: 1 },
+      },
+    }
+  })
+
+  const ran = await $.command.run({ command: 'summary', args: 'dokumentace' })
+
+  expect(ran.text).toBe('Chat o VPS.\n- hotová dokumentace')
+  expect(asked).toContain('Summarize this conversation')
+  expect(asked).toContain('Pay most attention to: dokumentace')
+})
+
+test('/summary reads the transcript of a resumed chat', async ($, on) => {
+  let asked = ''
+  on('model.fork', () => ({ value: { isAnswered: false, reason: 'nothing-to-fork' } }))
+  on('session.messages', () => ({
+    value: [
+      { role: 'user', text: 'napiš zálohování v rustu', toolUses: [] },
+      { role: 'assistant', text: 'Hotovo, běží denně.', toolUses: [] },
+    ],
+  }))
+  on('model.complete', (_, e) => {
+    asked = e.prompt
+
+    return {
+      value: {
+        isAnswered: true,
+        text: 'Zálohování v Rustu.',
+        usage: { input_tokens: 1, output_tokens: 1 },
+      },
+    }
+  })
+
+  const ran = await $.command.run({ command: 'summary', args: '' })
+
+  expect(ran.text).toBe('Zálohování v Rustu.')
+  expect(asked).toBe('User: napiš zálohování v rustu\n\nAssistant: Hotovo, běží denně.')
+})
+
+test('/summary says so when the chat has nothing to summarize', async ($, on) => {
+  on('model.fork', () => ({ value: { isAnswered: false, reason: 'nothing-to-fork' } }))
+  on('session.messages', () => ({ value: [] }))
+
+  const ran = await $.command.run({ command: 'summary', args: '' })
+
+  expect(ran.text).toBe('Nothing to summarize yet.')
+})

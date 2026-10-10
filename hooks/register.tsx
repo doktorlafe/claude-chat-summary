@@ -9,6 +9,13 @@ const SYSTEM =
   'You label conversations. Reply with 3 to 6 words naming what the conversation ' +
   'is about, in the language the user writes in. No quotes, no full stop, nothing else.'
 
+// Asked over the whole transcript, so it can name what the short label leaves out.
+const LONG =
+  'Summarize this conversation so far for the person who had it, in the language ' +
+  'they write in. Plain text, no headings: one or two sentences on what it is about, ' +
+  'then short "- " lines for what was asked, what was done or decided, and what is ' +
+  'still open. At most 200 words. Reply with the summary alone.'
+
 const cut = (text: string, length: number) =>
   text.length > length ? `${text.slice(0, length)}…` : text
 
@@ -42,6 +49,63 @@ const digest = async ($: EngineInterface) => {
     .join('\n')
 }
 
+// The opening request and as many of the latest messages as fit the budget.
+const transcript = async ($: EngineInterface) => {
+  const messages = await $.session.messages()
+
+  if (!Array.isArray(messages)) {
+    return ''
+  }
+
+  const lines = messages
+    .filter(one => one.text.trim() !== '')
+    .map(one => `${one.role === 'user' ? 'User' : 'Assistant'}: ${cut(one.text.trim(), 1500)}`)
+  const [first, ...rest] = lines
+
+  if (first === undefined) {
+    return ''
+  }
+
+  const latest: string[] = []
+  let room = 60_000 - first.length
+
+  for (const line of rest.reverse()) {
+    room -= line.length
+
+    if (room < 0) {
+      break
+    }
+
+    latest.unshift(line)
+  }
+
+  return [first, ...(latest.length < rest.length ? ['[…]'] : []), ...latest].join('\n\n')
+}
+
+// A resumed chat has nothing to fork until its first answer, so it is read
+// from the transcript instead.
+const summarize = async ($: EngineInterface, ask: string) => {
+  const forked = await $.model.fork({ prompt: ask })
+
+  if (forked.isAnswered || forked.reason !== 'nothing-to-fork') {
+    return forked
+  }
+
+  const prompt = await transcript($)
+
+  if (prompt === '') {
+    return forked
+  }
+
+  return $.model.complete({
+    model: 'haiku',
+    system: ask,
+    prompt,
+    maxTokens: 700,
+    timeoutMs: 30_000,
+  })
+}
+
 const refresh = async ($: EngineInterface) => {
   const prompt = await digest($)
 
@@ -72,6 +136,12 @@ const refresh = async ($: EngineInterface) => {
 export const register: Register = on => {
   // A resumed chat has a transcript and no summary yet.
   on('session.start', async ($, e, next) => {
+    await $.command.register({
+      name: 'summary',
+      description: 'Summarize this chat in a few sentences and bullet points',
+      argumentHint: '[what to focus on]',
+    })
+
     const started = await next(e)
 
     if (e.isInteractive && (await read($, summary)) === null) {
@@ -79,6 +149,25 @@ export const register: Register = on => {
     }
 
     return started
+  })
+
+  on('command.run', { command: 'summary' }, async ($, e) => {
+    const focus = e.args.trim()
+    const reply = await summarize(
+      $,
+      focus === '' ? LONG : `${LONG}\nPay most attention to: ${focus}`,
+    )
+
+    if (reply.isAnswered) {
+      return { text: reply.text.trim() }
+    }
+
+    return {
+      text:
+        reply.reason === 'nothing-to-fork'
+          ? 'Nothing to summarize yet.'
+          : `No summary: ${reply.reason}.`,
+    }
   })
 
   on('turn.complete', async ($, e, next) => {
