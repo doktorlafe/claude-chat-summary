@@ -1,5 +1,11 @@
 # chat-summary
 
+```
+/plugin install chat-summary --marketplace doktorlafe/claude-chat-summary
+```
+
+Type that at the prompt of a Claude Code terminal session, answer `y` to add the marketplace, then pick a scope. The line appears after the first completed turn.
+
 A Claude Code mod that shows a few-word summary of what the current chat is about, in a dim line above the prompt:
 
 ```
@@ -9,16 +15,6 @@ A Claude Code mod that shows a few-word summary of what the current chat is abou
 The same text becomes the session title, which is what the terminal window or tab is named after.
 
 It also adds the `/summary` command, which prints a longer summary of the chat: a sentence or two on what it is about, then bullet points for what was asked, what was done and what is still open. Anything typed after the command says what to focus on, as in `/summary the database migration`.
-
-## Install
-
-In a terminal session of Claude Code:
-
-```
-/plugin install chat-summary --marketplace doktorlafe/claude-chat-summary
-```
-
-Answer `y` to add the marketplace, then pick a scope. The line appears after the first completed turn.
 
 ## How it works
 
@@ -34,7 +30,7 @@ Each completed turn adds one short Haiku call (up to 40 output tokens) on your o
 
 ## Official plugin directory
 
-This mod is not in the official Claude Code plugin directory (`claude-plugins-official`). I would like to submit it there, but I have not started the submission yet. Until then, install it from this repository with the command above.
+This mod is not in the official Claude Code plugin directory (`claude-plugins-official`). I would like to submit it there, but I have not started the submission yet. Until then, install it from this repository with the command at the top.
 
 ## Development
 
