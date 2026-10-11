@@ -1,0 +1,15 @@
+{
+  "name": "colorful",
+  "version": "0.1.0",
+  "description": "Set the text color of replies, prompts, notices and other transcript rows",
+  "author": { "name": "lafe" },
+  "license": "MIT",
+  "userConfig": {
+    "reply": { "type": "string", "title": "Reply color", "description": "Color of Claude's replies: a name (red, cyan), a hex (#ff8800), a theme key (claude, success) or default", "default": "default" },
+    "prompt": { "type": "string", "title": "Prompt color", "description": "Color of your own prompts in the transcript, or default", "default": "default" },
+    "info": { "type": "string", "title": "Info color", "description": "Color of the info notices under the logo, or default", "default": "default" },
+    "command": { "type": "string", "title": "Command output color", "description": "Color of slash command output, or default", "default": "default" },
+    "duration": { "type": "string", "title": "Turn duration color", "description": "Color of the line that closes a turn, or default", "default": "default" },
+    "hint": { "type": "string", "title": "Hint color", "description": "Color of the hint line under the prompt, or default", "default": "default" }
+  }
+}
