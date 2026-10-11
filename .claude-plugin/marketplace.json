@@ -2,5 +2,8 @@
   "name": "lafe-mods",
   "description": "Mods for Claude Code by lafe",
   "owner": { "name": "lafe" },
-  "plugins": [{ "name": "chat-summary", "source": "./" }]
+  "plugins": [
+    { "name": "chat-summary", "source": "./chat-summary" },
+    { "name": "colorful", "source": "./colorful" }
+  ]
 }
