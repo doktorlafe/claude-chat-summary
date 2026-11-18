@@ -28,9 +28,6 @@ If the model does not answer within 8 seconds, the previous summary stays.
 
 Each completed turn adds one short Haiku call (up to 40 output tokens) on your own account. Each `/summary` is one request to the chat's model with the conversation as its input, mostly served from the prompt cache while the chat is active. The excerpt of the conversation goes only to that model call; the mod sends nothing anywhere else and stores only the summary line in the session's state.
 
-## Other mods in this repository
-
-[colorful](colorful/) sets the text color of replies, prompts, notices and other transcript rows.
 
 ## Official plugin directory
 
