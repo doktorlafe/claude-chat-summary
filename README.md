@@ -4,9 +4,7 @@
 
 Five terminal tabs open, every one of them named `claude`? Came back from lunch and can't remember where you left off? chat-summary keeps a short, live label of the conversation right above your prompt, and it looks good doing it.
 
-```
-❄ Sicily travel summary
-```
+<img width="1246" height="708" alt="image" src="https://github.com/user-attachments/assets/73bbac4a-9f0c-4fa4-b35b-71ea3734d44d" />
 
 ### Why you'll like it
 
