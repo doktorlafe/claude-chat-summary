@@ -5,6 +5,42 @@ import type { Summary } from '../types'
 
 const summary = atom({ plugin: 'chat-summary', key: 'summary' } as const, null)
 
+// Advances on a timer; each tick moves the effect along the text.
+const frame = atom({ plugin: 'chat-summary', key: 'frame' } as const, 0)
+
+// Glint themes: a soft light slides across the text, then rests. Each shade
+// list runs from the resting colour (index 1) up to the brightest (index 5);
+// the symbols cycle slowly in front.
+const GLINTS: Record<string, { shades: string[]; symbols: string[] }> = {
+  winter: {
+    shades: ['#5b7fa6', '#6f93b8', '#86a9cc', '#a3c4e0', '#c8def0', '#eef6fc'],
+    symbols: ['❄', '❄', '❅', '❆', '❅'],
+  },
+  aurora: {
+    shades: ['#3f7f74', '#4f9a8a', '#5fb8a0', '#7fd1b9', '#a99be8', '#d8ccff'],
+    symbols: ['✦', '✧', '⋆', '✧'],
+  },
+  ember: {
+    shades: ['#8a4b32', '#a65a3a', '#c46e42', '#e08a4f', '#f5b06b', '#ffe0a3'],
+    symbols: ['✶', '✷', '✸', '✷'],
+  },
+  ocean: {
+    shades: ['#2f6f7a', '#3a8290', '#4a9aa8', '#6bb8c4', '#9ad6dc', '#dff6f5'],
+    symbols: ['≈', '∼', '≈', '~'],
+  },
+  sakura: {
+    shades: ['#9a6a7e', '#b07c91', '#c992a8', '#e0aec2', '#f2cfdc', '#fff0f5'],
+    symbols: ['✿', '❀', '✿', '❁'],
+  },
+}
+
+const RAINBOW = ['#ff6b6b', '#ffa94d', '#ffd43b', '#69db7c', '#4dabf7', '#9775fa', '#f783ac']
+const GEMS = ['◆', '◇', '◈', '◇']
+
+// Milliseconds per frame for each speed in the config menu.
+const SPEEDS: Record<string, number> = { slow: 400, normal: 220, fast: 120 }
+let ticking: { cancel: () => void } | undefined
+
 const SYSTEM =
   'You label conversations. Reply with 3 to 6 words naming what the conversation ' +
   'is about, in the language the user writes in. No quotes, no full stop, nothing else.'
@@ -133,7 +169,13 @@ const refresh = async ($: EngineInterface) => {
   }
 }
 
-export const register: Register = on => {
+export const register: Register = (on, options) => {
+  const chosen = String(options.style)
+  const style =
+    chosen === 'rainbow' || chosen === 'plain' || chosen in GLINTS ? chosen : 'winter'
+  const glintTheme = GLINTS[style] ?? GLINTS.winter!
+  const pace = SPEEDS[String(options.speed)] ?? SPEEDS.normal!
+
   // A resumed chat has a transcript and no summary yet.
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -143,6 +185,13 @@ export const register: Register = on => {
     })
 
     const started = await next(e)
+
+    ticking?.cancel()
+    ticking = undefined
+
+    if (style !== 'plain') {
+      ticking = $.clock.every(pace, () => update($, frame, n => (n + 1) % 840))
+    }
 
     if (e.isInteractive && (await read($, summary)) === null) {
       await refresh($)
@@ -196,12 +245,56 @@ export const register: Register = on => {
     }
 
     const { Box, Text } = $.ui.resolve(e)
+    if (style === 'plain') {
+      return (
+        <Box>
+          <Text dimColor>◆ {text}</Text>
+        </Box>
+      )
+    }
+
+    const n = await read($, frame)
+    const chars = [...text]
+
+    if (style === 'rainbow') {
+      // A bright "hop" runs across the letters; the rest drift through the rainbow.
+      const hop = n % (chars.length + 8)
+
+      return (
+        <Box>
+          <Text color={RAINBOW[n % RAINBOW.length]}>{GEMS[n % GEMS.length]} </Text>
+          {chars.map((ch, i) => {
+            const near = Math.abs(i - hop)
+            return (
+              <Text
+                key={String(i)}
+                color={RAINBOW[(i + Math.floor(n / 2)) % RAINBOW.length]}
+                bold={near <= 1}
+                dimColor={near > 2}
+              >
+                {near === 0 ? ch.toUpperCase() : ch}
+              </Text>
+            )
+          })}
+        </Box>
+      )
+    }
+
+    // A soft glint slides across, then rests a while before the next pass.
+    const { shades, symbols } = glintTheme
+    const glint = n % (chars.length + 30)
 
     return (
       <Box>
-        <Text dimColor>
-          ◆ {text}
-        </Text>
+        <Text color={shades[3]}>{symbols[Math.floor(n / 6) % symbols.length]} </Text>
+        {chars.map((ch, i) => {
+          const near = Math.abs(i - glint)
+          return (
+            <Text key={String(i)} color={shades[Math.max(1, 5 - near)]}>
+              {ch}
+            </Text>
+          )
+        })}
       </Box>
     )
   })

@@ -1,8 +1,24 @@
 {
   "name": "chat-summary",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Shows a few-word summary of what the chat is about above the prompt and adds /summary for a longer one",
   "author": { "name": "lafe" },
   "license": "MIT",
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "style": {
+      "type": "string",
+      "title": "Summary style",
+      "description": "How the summary above the prompt looks: winter (icy blue), aurora (green and violet), ember (warm fire), ocean (teal waves), sakura (soft pink), rainbow (bouncing colours) or plain (no effects)",
+      "options": ["winter", "aurora", "ember", "ocean", "sakura", "rainbow", "plain"],
+      "default": "winter"
+    },
+    "speed": {
+      "type": "string",
+      "title": "Animation speed",
+      "description": "How fast the effect moves",
+      "options": ["slow", "normal", "fast"],
+      "default": "normal"
+    }
+  }
 }
