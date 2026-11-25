@@ -35,6 +35,10 @@ Markdown rows take no color, so a colored reply is drawn as colored text with th
 
 The colors are stored as the plugin's options, so they can also be set when installing or with `claude plugin configure colorful`.
 
+## What it changes
+
+`/colors` writes the plugin's own options in your Claude Code settings: `colorful.reply`, `colorful.prompt`, `colorful.info`, `colorful.command`, `colorful.duration` and `colorful.hint`. `/colors reset` sets them all back to `default`. The mod sets no environment variables and changes no other settings.
+
 ## Development
 
 ```

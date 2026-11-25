@@ -1,6 +1,6 @@
 {
   "name": "colorful",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Set the text color of replies, prompts, notices and other transcript rows",
   "author": { "name": "lafe" },
   "license": "MIT",

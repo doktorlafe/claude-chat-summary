@@ -234,7 +234,18 @@ export const register: Register = (on, options) => {
     }
 
     for (const [one, value] of changes) {
-      const { deny } = await $.config.set({ key: `colorful.${one}`, value })
+      const { deny } =
+        one === 'reply'
+          ? await $.config.set({ key: 'colorful.reply', value })
+          : one === 'prompt'
+            ? await $.config.set({ key: 'colorful.prompt', value })
+            : one === 'info'
+              ? await $.config.set({ key: 'colorful.info', value })
+              : one === 'command'
+                ? await $.config.set({ key: 'colorful.command', value })
+                : one === 'duration'
+                  ? await $.config.set({ key: 'colorful.duration', value })
+                  : await $.config.set({ key: 'colorful.hint', value })
 
       if (deny !== undefined) {
         return { text: `Could not set ${one}: ${deny}` }
