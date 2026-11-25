@@ -53,7 +53,10 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(titled.sessionTitle).toBe('Dokumentace VPS na ARM')
 
     expect(asked).toContain('First request: udělej mi .md soubor')
-    expect(JSON.stringify(await ui.drawn())).toContain('"◆ ","Dokumentace VPS na ARM"')
+    // Drawn one letter per Text so each can change colour; join them back up.
+    const drawn = JSON.stringify(await ui.drawn())
+    const letters = [...drawn.matchAll(/"children":\["(.)"\]/g)].map(m => m[1]).join('')
+    expect(letters).toBe('Dokumentace VPS na ARM')
   })
 }
 
